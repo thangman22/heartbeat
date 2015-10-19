@@ -29,14 +29,14 @@ class HeartBeatTest extends PHPUnit_Framework_TestCase
 
     public function testPulse()
     {
-        sleep(10);
+
         $lastBeat = $this->heartBeat->pulse();
         $this->assertEquals(10, strlen($lastBeat));
     }
 
     public function testGetLifeStatusDie()
     {
-
+        sleep(10);
         $lifeStatus = $this->heartBeat->getLifeStatus("test", 1);
         $this->assertEquals("die", $lifeStatus['lifeStatus']);
     }

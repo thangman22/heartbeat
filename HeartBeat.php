@@ -77,8 +77,8 @@ class HeartBeat
     public function processStart()
     {
         $startTime = time();
-        $this->redis->set($this->prefix . $this->keyName . "lifetime", $startTime);
         $this->pulse();
+        $this->redis->set($this->prefix . $this->keyName . "lifetime", $startTime);
         return date("r", $startTime);
     }
 
@@ -121,7 +121,7 @@ class HeartBeat
         $return['diffSec'] = time() - $lastBeat;
         $lifeStatus['lastPulse'] = $lastBeat;
         $return['lifeDetail'] = $lifeStatus;
-        if ($return['diffSec'] <= $acceptDiff) {
+        if ($return['diffSec'] <= $acceptDiff && $return['diffSec'] >= 0) {
             $return['lifeStatus'] = "alive";
         } else {
             if (!isset($lifeStatus['endTime'])) {

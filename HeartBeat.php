@@ -78,6 +78,7 @@ class HeartBeat
     {
         $startTime = time();
         $this->redis->set($this->prefix . $this->keyName . "lifetime", $startTime);
+        $this->pulse();
         return date("r", $startTime);
     }
 
@@ -120,7 +121,7 @@ class HeartBeat
         $return['diffSec'] = time() - $lastBeat;
         $lifeStatus['lastPulse'] = $lastBeat;
         $return['lifeDetail'] = $lifeStatus;
-        if ($return['diffSec'] <= $acceptDiff && $return['diffSec'] >= 0) {
+        if ($return['diffSec'] <= $acceptDiff) {
             $return['lifeStatus'] = "alive";
         } else {
             if (!isset($lifeStatus['endTime'])) {

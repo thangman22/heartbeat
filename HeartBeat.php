@@ -117,7 +117,7 @@ class HeartBeat
     {
         $lifeStatus = $this->getLifeTime($keyName);
         $lastBeat = $this->redis->get($this->prefix . $this->addColon($keyName) . "heartbeat");
-        $return['diffSec'] = $lastBeat - $lifeStatus['startTime'];
+        $return['diffSec'] = time() - $lastBeat;
         $lifeStatus['lastPulse'] = $lastBeat;
         $return['lifeDetail'] = $lifeStatus;
         if ($return['diffSec'] <= $acceptDiff && $return['diffSec'] >= 0) {

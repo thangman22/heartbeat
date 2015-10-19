@@ -4,12 +4,13 @@ class HeartBeat
 
     public $keyName;
 
-    private $redis;
+    public $redis;
 
-    private $prefix = "zocial:heartbeat:";
+    public $prefix = "zocialheartbeat:";
 
     public function __construct($redisServer = "198.27.69.122", $redisPort = "6385", $redisDatabase = 2, $keyName = "")
     {
+        $this->prefix .= gethostname() . ":";
 
         $this->keyName = $keyName . ":";
 
@@ -29,6 +30,12 @@ class HeartBeat
     {
         if (!in_array($type, array("*", "lifetime", "heartbeat", "counter"))) {
             throw new Exception("Heartbeat type is invalid", 1);
+        }
+
+        if ($type != "*" && $type != "counter") {
+            $type = "*:" . $type;
+        } elseif ($type == "counter") {
+            $type = "*:" . $type . ":*";
         }
 
         $return = array();
@@ -54,7 +61,7 @@ class HeartBeat
         return $key . ":";
     }
 
-    private function extractKeyname($key)
+    public function extractKeyname($key)
     {
         $explode_key = explode(":", $key);
         if (strpos($key, ":lifetime") !== false) {

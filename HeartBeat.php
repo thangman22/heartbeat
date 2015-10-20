@@ -1,5 +1,7 @@
 <?php
 
+require_once "redis_config.php";
+
 class HeartBeat
 {
 
@@ -9,14 +11,12 @@ class HeartBeat
 
     public $prefix = "zocialheartbeat:";
 
-    public $redisServer = "127.0.0.1";
-
-    public $redisPort = "6379";
-
-    public $redisDatabase = 0;
+    public $workerPrefix;
 
     public function __construct($keyName = "")
     {
+
+        include "redis_config.php";
 
         $this->workerPrefix = $this->prefix;
 
@@ -28,8 +28,8 @@ class HeartBeat
             throw new Exception("Redis extension is not found.", 1);
         } else {
             $this->redis = new Redis;
-            $this->redis->pconnect($this->redisServer, $this->redisPort);
-            $this->redis->select($this->redisDatabase);
+            $this->redis->pconnect($redisServer, $redisPort);
+            $this->redis->select($redisDatabase);
         }
     }
 
@@ -173,6 +173,7 @@ class HeartBeat
         foreach ($keys as $key => $value) {
             $diff = $now - $this->redis->get($value);
             $explode_key = explode(":",$value);
+
             $status = ($diff <= $acceptDiff) ? "alive" : "die";
             $return['detail'][$explode_key[1]][$explode_key[4]]['status'] = $status;
             $return['detail'][$explode_key[1]][$explode_key[4]]['timeDiff'] = $diff;

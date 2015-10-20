@@ -1,4 +1,5 @@
 <?php
+
 class HeartBeat
 {
 
@@ -8,12 +9,18 @@ class HeartBeat
 
     public $prefix = "zocialheartbeat:";
 
-    public function __construct($redisServer = "127.0.0.1", $redisPort = "6379", $redisDatabase = 0, $keyName = "")
+    public $redisServer = "127.0.0.1";
+
+    public $redisPort = "6379";
+
+    public $redisDatabase = 0;
+
+    public function __construct($keyName = "")
     {
 
         $this->workerPrefix = $this->prefix;
 
-        $this->prefix .= gethostname() . ":";
+        $this->prefix .= gethostname(). ":";
 
         $this->keyName = $keyName . ":";
 
@@ -21,8 +28,8 @@ class HeartBeat
             throw new Exception("Redis extension is not found.", 1);
         } else {
             $this->redis = new Redis;
-            $this->redis->pconnect($redisServer, $redisPort);
-            $this->redis->select($redisDatabase);
+            $this->redis->pconnect($this->redisServer, $this->redisPort);
+            $this->redis->select($this->redisDatabase);
         }
     }
 
@@ -79,6 +86,7 @@ class HeartBeat
         $startTime = time();
         $this->pulse();
         $this->redis->set($this->prefix . $this->keyName . "lifetime", $startTime);
+        $this->setPid();
         return date("r", $startTime);
     }
 
@@ -209,6 +217,17 @@ class HeartBeat
     public function decreaseCounterValue($key)
     {
         return $this->redis->decr($this->prefix . $this->keyName . "counter:" . $key);
+    }
+
+    //Get PID
+    public function setPid()
+    {
+        return $this->redis->set($this->prefix . $this->keyName . "pid", getmypid());
+    }
+
+    public function getPid($keyName)
+    {
+        return $this->redis->get($this->prefix . $this->addColon($keyName) . "pid");
     }
 
     //Other

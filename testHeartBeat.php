@@ -10,7 +10,7 @@ class HeartBeatTest extends PHPUnit_Framework_TestCase
 
     protected function setUp()
     {
-        $this->heartBeat = new HeartBeat("127.0.0.1", "6379", 0, "test");
+        $this->heartBeat = new HeartBeat("test");
 
     }
 
@@ -76,7 +76,7 @@ class HeartBeatTest extends PHPUnit_Framework_TestCase
     public function testCheckWorkerStatus()
     {
         $pulseStatus = $this->heartBeat->checkWorkerStatus("test", 3600);
-        $this->assertEquals(1, count($pulseStatus));
+        $this->assertEquals(1, count($pulseStatus['detail']));
     }
 
     public function testDeleteWorkerPulse()

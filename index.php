@@ -93,7 +93,7 @@ date_default_timezone_set("Asia/Bangkok");
                                 }
                                 ?>
                             </td>
-                            <td class="text-center"><button type="button" class="btn btn-danger  btn-xs" style="margin-bottom:5px;">Delete Process</button><br><button type="button" class="btn btn-danger  btn-xs">Delete Worker</button></td>
+                            <td class="text-center"><button type="button" class="btn btn-default  btn-xs" style="margin-bottom:5px;">Delete Process</button><br><button type="button" class="btn btn-default  btn-xs">Delete Worker</button></td>
                         </tr>
                         <?php endforeach;?>
                     </table>

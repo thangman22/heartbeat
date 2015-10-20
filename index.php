@@ -4,6 +4,13 @@ require 'inc/timeago.inc.php';
 $heartbeat = new HeartBeat("127.0.0.1", "6379", 0);
 $heartBeatKey = $heartbeat->listHeartBeat("lifetime");
 date_default_timezone_set("Asia/Bangkok");
+if(isset($_GET['delete_worker'])){
+    $heartbeat->deletePulseWorker($_GET['delete_worker']);
+}
+
+if(isset($_GET['delete_process'])){
+    $heartbeat->deleteProcess($_GET['delete_process']);
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -32,7 +39,9 @@ date_default_timezone_set("Asia/Bangkok");
                             <th>Status</th>
                             <th>Delete</th>
                         </tr>
-                        <?php foreach ($heartBeatKey['lifetime'] as $key => $item):
+                        <?php
+                        if(isset($heartBeatKey['lifetime'])):
+                        foreach ($heartBeatKey['lifetime'] as $key => $item):
                         $keyName = $heartbeat->extractKeyname($key);
                         $lifestatus = $heartbeat->getLifeStatus($keyName, 600);
                         $fullDate = date("Y/m/d H:i:s", $lifestatus['lifeDetail']['lastPulse']);
@@ -64,9 +73,12 @@ date_default_timezone_set("Asia/Bangkok");
                             }else{
                                 echo "No worker running.";
                             }
-                            echo "<hr>";
-                            echo "<ul class='list-unstyled'>";
-                            foreach ($worker['detail'] as $key_worker => $value_worker) {
+
+
+                            if(isset($worker['detail'])){
+                                echo "<hr>";
+                                echo "<ul class='list-unstyled'>";
+                                foreach ($worker['detail'] as $key_worker => $value_worker) {
                                 echo "<li><strong>".$key_worker."</strong></li>";
                                 echo "<ul>";
                                 foreach($value_worker as $key_pid => $value_pid){
@@ -80,8 +92,10 @@ date_default_timezone_set("Asia/Bangkok");
                                     echo "</li>";
                                 }
                                 echo "</ul>";
+                                }
+                                echo "</ul>";
                             }
-                            echo "</ul>";
+
                             ?></td>
                             <td>
                                 <?php if ($lifestatus['lifeStatus'] == "alive") {
@@ -93,9 +107,9 @@ date_default_timezone_set("Asia/Bangkok");
                                 }
                                 ?>
                             </td>
-                            <td class="text-center"><button type="button" class="btn btn-default  btn-xs" style="margin-bottom:5px;">Delete Process</button><br><button type="button" class="btn btn-default  btn-xs">Delete Worker</button></td>
+                            <td class="text-center"><a class="btn btn-default  btn-xs" style="margin-bottom:5px;" href="?delete_process=<?php echo $keyName; ?>">Delete Process</a><br><a class="btn btn-default  btn-xs" href="?delete_worker=<?php echo $keyName; ?>">Delete Worker</a></td>
                         </tr>
-                        <?php endforeach;?>
+                        <?php endforeach; endif;?>
                     </table>
                 </div>
             </div>

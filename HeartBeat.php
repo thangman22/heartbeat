@@ -8,7 +8,7 @@ class HeartBeat
 
     public $prefix = "zocialheartbeat:";
 
-    public function __construct($redisServer = "198.27.69.122", $redisPort = "6385", $redisDatabase = 2, $keyName = "")
+    public function __construct($redisServer = "127.0.0.1", $redisPort = "6379", $redisDatabase = 0, $keyName = "")
     {
 
         $this->workerPrefix = $this->prefix;
@@ -101,11 +101,11 @@ class HeartBeat
         return $returnVal;
     }
 
-    public function deleteProcess()
+    public function deleteProcess($keyName)
     {
         $startTime = time();
         $this->pulse();
-        $keys = $this->redis->set($this->prefix . $this->addColon($this->keyName) . "*");
+        $keys = $this->redis->keys($this->prefix . $this->addColon($keyName) . "*");
         foreach ($keys as $key => $value) {
             $this->redis->delete($value);
         }

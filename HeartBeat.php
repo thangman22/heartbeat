@@ -1,6 +1,10 @@
 <?php
 
-require_once "redis_config.php";
+require_once __DIR__ . "/redis_config.php";
+
+if (!class_exists('Redis')) {
+    dl('redis.so');
+}
 
 class HeartBeat
 {
@@ -20,7 +24,7 @@ class HeartBeat
 
         $this->workerPrefix = $this->prefix;
 
-        $this->prefix .= gethostname(). ":";
+        $this->prefix .= "monitor:";
 
         $this->keyName = $keyName . ":";
 
@@ -90,10 +94,13 @@ class HeartBeat
         return date("r", $startTime);
     }
 
-    public function processEnd()
+    public function processEnd($delete = false)
     {
         $endTime = time();
         $this->redis->append($this->prefix . $this->keyName . "lifetime", "|" . $endTime);
+        if ($delete == true) {
+            $this->redis->delete($this->prefix . $this->keyName . "lifetime");
+        }
         return date("r", $endTime);
     }
 
@@ -137,6 +144,9 @@ class HeartBeat
         $lifeStatus = $this->getLifeTime($keyName);
         $lastBeat = $this->redis->get($this->prefix . $this->addColon($keyName) . "heartbeat");
         $return['diffSec'] = time() - $lastBeat;
+        if ($return['diffSec'] < 0) {
+            $return['diffSec'] = 0;
+        }
         $lifeStatus['lastPulse'] = $lastBeat;
         $return['lifeDetail'] = $lifeStatus;
         if ($return['diffSec'] <= $acceptDiff && $return['diffSec'] >= 0) {
@@ -156,12 +166,12 @@ class HeartBeat
     public function pulseWorker()
     {
         $startTime = time();
-        return $this->redis->set($this->prefix . $this->keyName . "heartbeat_worker:" . getmypid(), $startTime);
+        return $this->redis->set($this->prefix . $this->keyName . "heartbeat_worker:" . getmypid() . "|" . gethostname(), $startTime);
     }
 
     public function workerEnd()
     {
-        return $this->redis->delete($this->prefix . $this->keyName . "heartbeat_worker:" . getmypid());
+        return $this->redis->delete($this->prefix . $this->keyName . "heartbeat_worker:" . getmypid() . "|" . gethostname());
     }
 
     public function checkWorkerStatus($keyName, $acceptDiff = 3600)
@@ -169,16 +179,18 @@ class HeartBeat
         $now = time();
         $return['count_die'] = 0;
         $return['count_worker'] = 0;
-        $keys = $this->redis->keys($this->workerPrefix ."*:". $this->addColon($keyName) . "heartbeat_worker:*");
+        $keys = $this->redis->keys($this->workerPrefix . "*:" . $this->addColon($keyName) . "heartbeat_worker:*");
         foreach ($keys as $key => $value) {
             $diff = $now - $this->redis->get($value);
-            $explode_key = explode(":",$value);
+            $explode_key = explode(":", $value);
 
             $status = ($diff <= $acceptDiff) ? "alive" : "die";
-            $return['detail'][$explode_key[1]][$explode_key[4]]['status'] = $status;
-            $return['detail'][$explode_key[1]][$explode_key[4]]['timeDiff'] = $diff;
+            $system_detail = explode("|", $explode_key[4]);
+
+            $return['detail'][$system_detail[1]][$system_detail[0]]['status'] = $status;
+            $return['detail'][$system_detail[1]][$system_detail[0]]['timeDiff'] = $diff;
             $return['count_worker']++;
-            if($status == "die"){
+            if ($status == "die") {
                 $return['count_die']++;
             }
         }
@@ -192,7 +204,7 @@ class HeartBeat
 
     public function deletePulseWorker($keyName)
     {
-        $keys = $this->redis->keys($this->workerPrefix ."*:". $this->addColon($keyName) . "heartbeat_worker:*");
+        $keys = $this->redis->keys($this->workerPrefix . "*:" . $this->addColon($keyName) . "heartbeat_worker:*");
         foreach ($keys as $key => $value) {
             $del = $this->redis->delete($value);
         }
@@ -223,7 +235,7 @@ class HeartBeat
     //Get PID
     public function setPid()
     {
-        return $this->redis->set($this->prefix . $this->keyName . "pid", getmypid());
+        return $this->redis->set($this->prefix . $this->keyName . "pid", getmypid() . "|" . gethostname());
     }
 
     public function getPid($keyName)
@@ -258,7 +270,8 @@ class HeartBeat
         }
     }
 
-    public function extractServerName($key){
+    public function extractServerName($key)
+    {
         $explode_key = explode(":", $key);
         return $explode_key[1];
     }

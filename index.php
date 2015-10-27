@@ -6,12 +6,12 @@ $heartBeatKey = $heartbeat->listHeartBeat("lifetime");
 date_default_timezone_set("Asia/Bangkok");
 if (isset($_GET['delete_worker'])) {
     $heartbeat->deletePulseWorker($_GET['delete_worker']);
-    echo "<script>window.location = 'inde.php';</script>";
+    echo "<script>window.location = 'index.php';</script>";
 }
 
 if (isset($_GET['delete_process'])) {
     $heartbeat->deleteProcess($_GET['delete_process']);
-    echo "<script>window.location = 'inde.php';</script>";
+    echo "<script>window.location = 'index.php';</script>";
 }
 ?>
 <!DOCTYPE html>
@@ -43,6 +43,7 @@ if (isset($_GET['delete_process'])) {
                         </tr>
                         <?php
 if (isset($heartBeatKey['lifetime'])):
+    ksort($heartBeatKey['lifetime']);
     foreach ($heartBeatKey['lifetime'] as $key => $item):
         $keyName = $heartbeat->extractKeyname($key);
         $lifestatus = $heartbeat->getLifeStatus($keyName, 600);
@@ -51,7 +52,7 @@ if (isset($heartBeatKey['lifetime'])):
         $counter = $heartbeat->listCounter($keyName);
         ?>
 		                        <tr>
-		                            <td><?php echo $keyName;?> <small class="text-muted">(<?php echo $heartbeat->extractServerName($key);?>)[<?php echo $heartbeat->getPid($keyName); ?>]</small></td>
+		                            <td><?php echo $keyName;?> <small class="text-muted">[<?php echo $heartbeat->getPid($keyName); ?>]</small></td>
 		                            <td>
 		                                <small class="text-muted">
 		                                <?php echo "<strong>Start at</strong> " . date("Y/m/d H:i:s", $lifestatus['lifeDetail']['startTime']);?>

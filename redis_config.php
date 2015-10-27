@@ -1,9 +1,9 @@
 <?php
 
-    $prefix = "zocialheartbeat:";
+$prefix = "zocialheartbeat:";
 
-    $redisServer = "127.0.0.1";
+$redisServer = "198.27.69.122";
 
-    $redisPort = "6379";
+$redisPort = "6385";
 
-    $redisDatabase = 0;
+$redisDatabase = 2;
